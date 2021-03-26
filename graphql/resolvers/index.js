@@ -1,6 +1,6 @@
-const productResolvers = require("./product");
-const userResolvers = require("./user");
-const cartResolvers = require("./cart");
+const productResolvers = require("./products");
+const userResolvers = require("./users");
+const cartResolvers = require("./carts");
 
 module.exports = {
   Query: {
