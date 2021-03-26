@@ -4,26 +4,33 @@ const userSchema = new Schema({
   email: String,
   password: String,
   phone: String,
-  address: String,
+  address: {
+    cityName: String,
+    cityId: String,
+    district: String,
+    postalCode: String,
+    detail: String,
+  },
+  balance: Number,
   buyer: {
-    buyerId: {
+    id: {
+      type: Schema.Types.ObjectId,
+      auto: true,
+    },
+    name: String,
+    birthDate: String,
+    avatar: String,
+    createdAt: String,
+  },
+  seller: {
+    id: {
       type: Schema.Types.ObjectId,
       auto: true,
     },
     username: String,
     avatar: String,
+    description: String,
     createdAt: String,
-  },
-  seller: {
-    sellerId: {
-      type: Schema.Types.ObjectId,
-      auto: true,
-    },
-    sellerName: String,
-    sellerAvatar: String,
-    sellerDesc: String,
-    createdAt: String,
-    balance: Number,
   },
 });
 

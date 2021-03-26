@@ -20,30 +20,39 @@ module.exports = gql`
     createdAt: String!
   }
 
-  type Buyer {
-    buyerId: ID!
-    username: String!
-    avatar: String
-    createdAt: String
-  }
-  type Seller {
-    sellerId: ID!
-    sellerName: String!
-    sellerDesc: String!
-    sellerAvatar: String
-    createdAt: String!
-    balance: Int
+  type Address {
+    cityName: String
+    cityId: String
+    district: String
+    postalCode: String
+    detail: String
   }
 
   type User {
     id: ID!
     email: String!
-    phone: String
-    address: String!
-    password: String!
+    phone: String!
+    address: Address!
+    balance: Int!
     token: String!
     buyer: Buyer!
     seller: Seller!
+  }
+
+  type Buyer {
+    id: ID!
+    name: String
+    birthDate: String
+    avatar: String
+    createdAt: String
+  }
+
+  type Seller {
+    id: ID!
+    username: String!
+    avatar: String!
+    description: String!
+    createdAt: String!
   }
 
   type Cart {
@@ -70,7 +79,7 @@ module.exports = gql`
   }
 
   input RegisterInput {
-    username: String!
+    name: String!
     password: String!
     confirmPassword: String!
     email: String!
@@ -94,9 +103,10 @@ module.exports = gql`
   type Query {
     getProducts: [Product]
     getProduct(productId: ID!): Product
-    getSeller(sellerId: ID!): Seller
-    getUsers: [User]
     getUser(userId: ID!): User
+    getUsers: [User]
+    getSeller(sellerId: ID!): User
+    getSellers: [User]
     getAllProductsinCart: [Cart]
     getSingleProductinCart(productId: ID!): Cart
   }

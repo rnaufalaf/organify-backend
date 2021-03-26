@@ -9,7 +9,7 @@ const {
   validateSellerProfileInput,
 } = require("../../util/validator");
 const { SECRET_KEY } = require("../../config");
-const User = require("../../models/user");
+const User = require("../../models/User");
 const checkAuth = require("../../util/checkAuth");
 
 function generateToken(user) {
@@ -20,20 +20,48 @@ function generateToken(user) {
       username: user.username,
     },
     SECRET_KEY,
-    { expiresIn: "1h" }
+    { expiresIn: "20h" }
   );
 }
 
 module.exports = {
+  Query: {
+    async getUser(_, { userId }) {
+      try {
+        const user = await User.findById(userId);
+        if (user) {
+          return user;
+        } else {
+          throw new Error("User not found");
+        }
+      } catch (err) {
+        throw new Error(err);
+      }
+    },
+
+    async getSeller(_, { sellerId }) {
+      console.log(sellerId);
+      try {
+        const user = await User.findOne({ "seller.id": sellerId });
+        if (user) {
+          return user;
+        } else {
+          throw new Error("Seller not found");
+        }
+      } catch (err) {
+        throw new Error(err);
+      }
+    },
+  },
   Mutation: {
     async login(_, { email, password }) {
       const { valid, errors } = validateLoginInput(email, password);
 
       if (!valid) {
-        throw new UserInputError("Errors", { errors });
+        throw new UserInputError("Wrong Credentials", { errors });
       }
 
-      const user = await User.findOne({ email: email });
+      const user = await User.findOne({ email });
 
       if (!user) {
         errors.general = "User not found";
@@ -43,10 +71,9 @@ module.exports = {
       const match = await bcrypt.compare(password, user.password);
 
       if (!match) {
-        errors.general = "Wrong credentials";
-        throw new UserInputError("Wrong credentials", { errors });
+        errors.general = "Wrong password";
+        throw new UserInputError("Wrong password", { errors });
       }
-
       const token = generateToken(user);
 
       return {
@@ -55,31 +82,36 @@ module.exports = {
         token,
       };
     },
+
     async register(
       _,
-      { registerInput: { username, email, password, confirmPassword } }
+      { registerInput: { name, password, confirmPassword, email } },
+      context,
+      info
     ) {
       // Validate user data
-      const { valid, errors } = validateRegisterInput(
-        username,
-        email,
-        password,
-        confirmPassword
-      );
+      // Make Sure User Already exist
+      // hash password and create auth token
 
-      if (!valid) {
-        throw new UserInputError("Errors", { errors });
-      }
-      // Ensure that user does not already existed
-      const user = await User.findOne({ username });
+      const user = await User.findOne({ email });
       if (user) {
-        throw new UserInputError("Username is taken", {
+        throw new UserInputError("Email is taken", {
           errors: {
-            username: "This username is taken",
+            username: "This email is taken",
           },
         });
       }
-      // Hash password and create an auth token
+
+      const { valid, errors } = validateRegisterInput(
+        name,
+        password,
+        confirmPassword,
+        email
+      );
+      if (!valid) {
+        throw new UserInputError("Errors", { errors });
+      }
+
       password = await bcrypt.hash(password, 12);
 
       const newUser = new User({
@@ -87,17 +119,18 @@ module.exports = {
         password: password,
         phone: "",
         address: "",
+        balance: 0,
         buyer: {
-          username: username,
+          name: name,
+          birthDate: "",
           avatar: "",
           createdAt: new Date().toISOString(),
         },
         seller: {
-          sellerName: "",
-          sellerAvatar: "",
-          sellerDesc: "",
+          username: "",
+          avatar: "",
+          description: "",
           createdAt: "",
-          balance: 0,
         },
       });
 
@@ -111,17 +144,16 @@ module.exports = {
         token,
       };
     },
+
     async updateUserProfile(
       _,
-      {
-        updateUserInput: { email, password, phone, address, username, avatar },
-      },
+      { userProfileInput: { name, email, phone, birthDate, avatar, address } },
       context
     ) {
-      const loggedUser = checkAuth(context);
+      const userCache = checkAuth(context);
 
       const user = await User.findOne({ email });
-      if (user && user._id.toString() !== loggedUser.id) {
+      if (user && user._id.toString() !== userCache.id) {
         throw new UserInputError("Email is taken", {
           errors: {
             username: "This email is taken",
@@ -129,27 +161,20 @@ module.exports = {
         });
       }
 
-      const { valid, errors } = validateUserProfileInput(
-        username,
-        email,
-        phone
-      );
+      const { valid, errors } = validateUserProfileInput(name, email, phone);
       if (!valid) {
         throw new UserInputError("Errors", { errors });
       }
 
-      password = await bcrypt.hash(password, 12);
-
       const updatedUser = await User.findOneAndUpdate(
-        { _id: loggedUser.id },
+        { _id: userCache.id },
         {
           email: email,
           phone: phone,
-          password: password,
           address: address,
-          "buyer.username": username,
+          "buyer.name": name,
+          "buyer.birthDate": birthDate,
           "buyer.avatar": avatar,
-          "buyer.createdAt": new Date().toISOString(),
         },
         { new: true }
       );
@@ -160,88 +185,47 @@ module.exports = {
         token,
       };
     },
+
     async updateSellerProfile(
       _,
-      { updateSellerInput: { sellerName, sellerDesc, sellerAvatar } },
+      { sellerProfileInput: { username, avatar, description } },
       context
     ) {
-      const loggedUser = checkAuth(context);
-      const { valid, errors } = validateSellerProfileInput(
-        sellerName,
-        sellerDesc,
-        sellerAvatar
-      );
+      const userCache = checkAuth(context);
+      const { valid, errors } = validateActivateSellerInput(username);
       if (!valid) {
         throw new UserInputError("Errors", { errors });
       }
 
-      const sellerNameExists = await User.findOne({
-        "seller.sellerName": sellerName.trim(),
+      const usernameExists = await User.findOne({
+        "seller.username": username.trim(),
       });
-
-      if (
-        sellerNameExists &&
-        sellerNameExists._id.toString() !== loggedUser.id
-      ) {
-        throw new UserInputError("Name is taken", {
+      if (usernameExists && usernameExists._id.toString() !== userCache.id) {
+        throw new UserInputError("Username is taken", {
           errors: {
-            sellerName: "Name is taken",
+            username: "This username is taken",
           },
         });
       }
 
-      const user = await User.findById(loggedUser.id);
+      const user = await User.findById(userCache.id);
 
-      const activateSellerProfile = await User.findOneAndUpdate(
-        { _id: loggedUser.id },
+      const activateSeller = await User.findOneAndUpdate(
+        { _id: userCache.id },
         {
-          "seller.sellerName": sellerName,
-          "seller.sellerDesc": sellerDesc,
-          "seller.avatar": sellerAvatar,
+          "seller.username": username,
+          "seller.description": description,
+          "seller.avatar": avatar,
           "seller.createdAt": new Date().toISOString(),
         },
         { new: true }
       );
       const token = generateToken(user);
       return {
-        ...activateSellerProfile._doc,
-        id: activateSellerProfile._id,
+        ...activateSeller._doc,
+        id: activateSeller._id,
         token,
       };
-    },
-  },
-  Query: {
-    async getUsers() {
-      try {
-        const users = await User.find();
-        return users;
-      } catch (err) {
-        throw new Error(err);
-      }
-    },
-    async getUser(_, { userId }) {
-      try {
-        const user = await User.findById(userId);
-        if (user) {
-          return user;
-        } else {
-          throw new error("User not found");
-        }
-      } catch (err) {
-        throw new Error(err);
-      }
-    },
-    async getSeller(_, { sellerId }) {
-      try {
-        const user = await User.findOne({ "seller.id": sellerId });
-        if (user) {
-          return user;
-        } else {
-          throw new Error("Seller not found");
-        }
-      } catch (err) {
-        throw new Error(err);
-      }
     },
   },
 };
