@@ -3,29 +3,30 @@ const { gql } = require("apollo-server");
 module.exports = gql`
   type Product {
     id: ID!
-    productName: String!
-    productDesc: String!
-    productImage: String
-    productImages: [String]
-    productPrice: Int!
-    productBenefits: String!
-    productWeight: Int!
-    purchaseRules: Int!
-    countInStock: Int!
-    rating: Int
-    numReview: Int
-    isFeatured: Boolean
+    name: String!
+    description: String!
+    price: Int!
+    stock: Int!
+    weight: Int!
+    benefits: String!
     category: String!
+    rating: Int!
+    numReview: Int!
     user: User!
+    images: [Image]!
+    wishlistedBy: [WishlistedBy]
     createdAt: String!
   }
 
-  type Address {
-    cityName: String
-    cityId: String
-    district: String
-    postalCode: String
-    detail: String
+  type WishlistedBy {
+    id: ID!
+    userId: ID!
+    createdAt: String!
+  }
+
+  type Image {
+    id: ID!
+    downloadUrl: String!
   }
 
   type User {
@@ -37,6 +38,14 @@ module.exports = gql`
     token: String!
     buyer: Buyer!
     seller: Seller!
+  }
+
+  type Address {
+    cityName: String
+    cityId: String
+    district: String
+    postalCode: String
+    detail: String
   }
 
   type Buyer {
@@ -63,19 +72,18 @@ module.exports = gql`
   }
 
   input ProductInput {
-    productName: String!
-    productDesc: String!
-    productImage: String
-    productImages: [String]
-    productPrice: Int!
-    productBenefits: String!
-    productWeight: Int!
-    purchaseRules: Int!
-    countInStock: Int!
+    name: String!
+    description: String!
+    price: Int!
+    stock: Int!
+    weight: Int!
+    benefits: String!
     category: String!
-    rating: Int
-    numReview: Int
-    isFeatured: Boolean
+    images: [ImageInput]!
+  }
+
+  input ImageInput {
+    downloadUrl: String
   }
 
   input RegisterInput {
@@ -103,6 +111,8 @@ module.exports = gql`
   type Query {
     getProducts: [Product]
     getProduct(productId: ID!): Product
+    getSellerProducts(userId: ID!): [Product]
+    getWishlist: [Product]
     getUser(userId: ID!): User
     getUsers: [User]
     getSeller(sellerId: ID!): User
@@ -117,7 +127,9 @@ module.exports = gql`
     updateUserProfile(updateUserInput: UpdateUserInput): User!
     updateSellerProfile(updateSellerInput: UpdateSellerInput): User!
     addProduct(productInput: ProductInput): Product!
+    updateProduct(productId: ID!, productInput: ProductInput): Product!
     deleteProduct(productId: ID!): Product!
+    addToWishlist(productId: ID!): Product!
     addProductToCart(productId: ID!, productQty: Int!): Cart!
     clearProductFromCart(cartId: ID!): String!
   }

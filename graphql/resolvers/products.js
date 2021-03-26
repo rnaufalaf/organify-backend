@@ -1,4 +1,4 @@
-const Product = require("../../models/product");
+const Product = require("../../models/Product");
 const checkAuth = require("../../util/checkAuth");
 const { validateProductInput } = require("../../util/validator");
 module.exports = {
@@ -7,17 +7,14 @@ module.exports = {
       _,
       {
         productInput: {
-          productName,
-          productDesc,
-          productImage,
-          productImages,
-          productPrice,
-          productBenefits,
-          productWeight,
-          purchaseRules,
-          countInStock,
-          isFeatured,
+          name,
+          description,
+          price,
+          weight,
+          benefits,
           category,
+          images,
+          stock,
         },
       },
       context
@@ -25,33 +22,29 @@ module.exports = {
       const user = checkAuth(context);
 
       const { valid, errors } = validateProductInput(
-        productName,
-        productDesc,
-        productPrice,
-        productBenefits,
-        productImage,
-        productImages,
-        productWeight,
-        purchaseRules,
-        countInStock,
+        name,
+        description,
+        price,
+        benefits,
+        weight,
+        stock,
         category
       );
       if (!valid) {
         throw new UserInputError("Errors", { errors });
       }
       const newProduct = new Product({
-        productName: productName,
-        productDesc: productDesc,
-        productImage: productImage,
-        productImages: productImages,
-        productPrice: productPrice,
-        productBenefits: productBenefits,
-        productWeight: productWeight,
-        purchaseRules: purchaseRules,
-        countInStock: countInStock,
+        name: name,
+        description: description,
+        price: price,
+        benefits: benefits,
+        weight: weight,
+        stock: stock,
         category: category,
-        isFeatured,
         user: user.id,
+        rating: 0,
+        numReview: 0,
+        images: images,
         createdAt: new Date().toISOString(),
       });
       const product = await newProduct.save();
@@ -59,6 +52,62 @@ module.exports = {
       return product;
     },
   },
+
+  async updateProduct(
+    _,
+    {
+      productId,
+      productInput: {
+        name,
+        description,
+        price,
+        weight,
+        benefits,
+        category,
+        images,
+        stock,
+      },
+    },
+    context
+  ) {
+    const user = checkAuth(context);
+    const { valid, errors } = validateProductInput(
+      name,
+      description,
+      price,
+      benefits,
+      weight,
+      stock,
+      category
+    );
+    if (!valid) {
+      throw new UserInputError("Errors", { errors });
+    }
+
+    const updatedProduct = await Product.findOneAndUpdate(
+      { _id: productId },
+      {
+        name: name,
+        description: description,
+        price: price,
+        benefits: benefits,
+        weight: weight,
+        stock: stock,
+        category: category,
+        user: user.id,
+        rating: 0,
+        numReview: 0,
+        images: images,
+      },
+      { new: true }
+    ).populate("user");
+
+    return {
+      ...updatedProduct._doc,
+      id: updatedProduct._id,
+    };
+  },
+
   async deleteProduct(_, { productId }, context) {
     const user = checkAuth(context);
 
@@ -73,61 +122,6 @@ module.exports = {
     } catch (err) {
       throw new Error(err);
     }
-  },
-  async updateProduct(
-    _,
-    {
-      productId,
-      productInput: {
-        productName,
-        productDesc,
-        productPrice,
-        productBenefits,
-        productImage,
-        productImages,
-        productWeight,
-        purchaseRules,
-        countInStock,
-      },
-    },
-    context
-  ) {
-    const { valid, errors } = validateProductInput(
-      productName,
-      productDesc,
-      productPrice,
-      productBenefits,
-      productImage,
-      productImages,
-      productWeight,
-      purchaseRules,
-      countInStock
-    );
-
-    if (!valid) {
-      throw new UserInputError("Errors", { errors });
-    }
-
-    const updatedProduct = await Product.findOneAndUpdate(
-      { _id: productId },
-      {
-        productName: productName,
-        productDesc: productDesc,
-        productPrice: productPrice,
-        productBenefits: productBenefits,
-        productImage: productImage,
-        productImages: productImages,
-        productWeight: productWeight,
-        purchaseRules: purchaseRules,
-        countInStock: countInStock,
-      },
-      { new: true }
-    );
-
-    return {
-      ...updatedProduct._doc,
-      id: updatedProduct._id,
-    };
   },
   async addToWishlist(_, { productId }, context) {
     const { id } = checkAuth(context);
@@ -158,7 +152,9 @@ module.exports = {
   Query: {
     async getProducts() {
       try {
-        const products = await Product.find();
+        const products = await Product.find()
+          .sort({ createdAt: -1 })
+          .populate("user");
         return products;
       } catch (err) {
         throw new Error(err);
@@ -166,12 +162,40 @@ module.exports = {
     },
     async getProduct(_, { productId }) {
       try {
-        const product = await Product.findById(productId);
+        const product = await Product.findById(productId).populate("user");
         if (product) {
           return product;
         } else {
           throw new error("Product not found");
         }
+      } catch (err) {
+        throw new Error(err);
+      }
+    },
+    async getSellerProducts(_, { userId }) {
+      try {
+        const products = await Product.find({ user: userId })
+          .sort({ createdAt: -1 })
+          .populate("user");
+        return products;
+      } catch (err) {
+        throw new Error(err);
+      }
+    },
+
+    async getWishlist(_, {}, context) {
+      try {
+        const user = checkAuth(context);
+        const products = await Product.find({
+          wishlistedBy: {
+            $elemMatch: {
+              userId: user.id,
+            },
+          },
+        })
+          .sort({ createdAt: -1 })
+          .populate("user");
+        return products;
       } catch (err) {
         throw new Error(err);
       }

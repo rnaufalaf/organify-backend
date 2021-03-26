@@ -82,41 +82,35 @@ module.exports.validateSellerProfileInput = (sellerName, sellerDesc) => {
 };
 
 module.exports.validateProductInput = (
-  productName,
-  productDesc,
-  productPrice,
-  productBenefits,
-  productImage,
-  productImages,
-  productWeight,
-  purchaseRules,
-  countInStock,
+  name,
+  description,
+  price,
+  benefits,
+  weight,
+  stock,
   category
 ) => {
   const errors = {};
-  if (productName.trim() === "") {
-    errors.productName = "Product name must not be empty";
+  if (name.trim() === "") {
+    errors.name = "Product name must not be empty";
   }
-  if (productDesc.trim() === "") {
-    errors.productDesc = "Description must not be empty";
+  if (description.trim() === "") {
+    errors.description = "Description must not be empty";
   }
-  if (productPrice === 0) {
-    errors.productPrice = "Product price must not be empty";
+  if (price === 0) {
+    errors.price = "Product price must not be empty";
   }
-  if (productBenefits.trim() === "") {
-    errors.productBenefits = "Product benefits must not be empty";
+  if (benefits.trim() === "") {
+    errors.benefits = "Product benefits must not be empty";
   }
-  if (productWeight === 0) {
-    errors.productWeight = "Product weight must not be empty";
-  }
-  if (purchaseRules === 0) {
-    errors.purchaseRules = "Rules must not be empty";
+  if (weight === 0) {
+    errors.weight = "Product weight must not be empty";
   }
   if (category.trim() === "") {
     errors.category = "Category must not be empty";
   }
-  if (countInStock === 0) {
-    errors.countInStock = "Product stock must not be empty";
+  if (stock === 0) {
+    errors.stock = "Product stock must not be empty";
   }
   return {
     errors,
