@@ -9,7 +9,7 @@ const {
   validateSellerProfileInput,
 } = require("../../util/validator");
 const { SECRET_KEY } = require("../../config");
-const User = require("../../models/User");
+const User = require("../../models/user");
 const checkAuth = require("../../util/checkAuth");
 
 function generateToken(user) {

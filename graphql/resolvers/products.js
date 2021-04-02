@@ -1,4 +1,4 @@
-const Product = require("../../models/Product");
+const Product = require("../../models/product");
 const checkAuth = require("../../util/checkAuth");
 const { validateProductInput } = require("../../util/validator");
 module.exports = {
