@@ -19,8 +19,7 @@ function generateToken(user) {
       email: user.email,
       username: user.username,
     },
-    SECRET_KEY,
-    { expiresIn: "20h" }
+    SECRET_KEY
   );
 }
 
@@ -104,9 +103,9 @@ module.exports = {
 
       const { valid, errors } = validateRegisterInput(
         name,
+        email,
         password,
-        confirmPassword,
-        email
+        confirmPassword
       );
       if (!valid) {
         throw new UserInputError("Errors", { errors });
