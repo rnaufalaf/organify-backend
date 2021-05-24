@@ -6,7 +6,7 @@ const { validateCartInput } = require("../../util/validator");
 
 module.exports = {
   Query: {
-    async getAllProductsinCart(_, __, context) {
+    async getProductsInCartBySeller(_, __, context) {
       try {
         const user = checkAuth(context);
         const cart = await Cart.find({ user: user.id })
@@ -15,19 +15,42 @@ module.exports = {
             path: "product",
             populate: {
               path: "user",
-              options: { sort: { "seller.sellerName": -1 } },
+              options: { sort: { "seller.username": -1 } },
             },
           });
         if (cart) {
           return cart;
         } else {
-          throw new Error("Cart items not found");
+          throw new Error("Products not found");
         }
       } catch (err) {
         throw new Error(err);
       }
     },
-    async getSingleProductinCart(_, { productId }, context) {
+
+    async getProductsCart(_, __, context) {
+      try {
+        const user = checkAuth(context);
+        const cart = await Cart.find({ user: user.id })
+          .populate("user")
+          .populate({
+            path: "product",
+            populate: {
+              path: "user",
+              options: { sort: { "seller.username": -1 } },
+            },
+          });
+        if (cart) {
+          return cart;
+        } else {
+          throw new Error("Products not found");
+        }
+      } catch (err) {
+        throw new Error(err);
+      }
+    },
+
+    async getProductInCart(_, { productId }, context) {
       try {
         const user = checkAuth(context);
         const cart = await Cart.findOne({ product: productId, user: user.id })
@@ -36,13 +59,13 @@ module.exports = {
             path: "product",
             populate: {
               path: "user",
-              options: { sort: { "seller.sellerName": -1 } },
+              options: { sort: { "seller.username": -1 } },
             },
           });
         if (cart) {
           return cart;
         } else {
-          throw new Error("Product not found");
+          throw new Error("User cart item not found");
         }
       } catch (err) {
         throw new Error(err);
@@ -50,7 +73,7 @@ module.exports = {
     },
   },
   Mutation: {
-    async addProductToCart(_, { productId, productQty }, context) {
+    async addProductToCart(_, { productId, productQty, isChecked }, context) {
       const user = checkAuth(context);
 
       const { valid, errors } = validateCartInput(productQty);
@@ -66,12 +89,44 @@ module.exports = {
 
       if (productInCart) {
         productInCart.productQty += productQty;
+        productInCart.isChecked = isChecked;
         const updatedCart = await productInCart.save();
         return updatedCart;
       } else {
         const newCart = new Cart({
           product: productId,
           user: user.id,
+          productQty: productQty,
+          isChecked: false,
+          createdAt: new Date().toISOString(),
+        });
+
+        const cart = await newCart.save();
+        return cart;
+      }
+    },
+    async editProductsInCart(_, { productId, productQty, isChecked }, context) {
+      const user = checkAuth(context);
+      const { valid, errors } = validateCartInput(productQty);
+      if (!valid) {
+        throw new UserInputError("Errors", { errors });
+      }
+
+      const productInCart = await Cart.findOne({
+        product: productId,
+        user: user.id,
+      });
+
+      if (productInCart) {
+        productInCart.productQty = productQty;
+        productInCart.isChecked = isChecked;
+        const updatedCart = await productInCart.save();
+        return updatedCart;
+      } else {
+        const newCart = new Cart({
+          product: productId,
+          user: user.id,
+          isChecked: false,
           productQty: productQty,
           createdAt: new Date().toISOString(),
         });
@@ -80,9 +135,8 @@ module.exports = {
         return cart;
       }
     },
-    async clearProductFromCart(_, { cartId }, context) {
+    async deleteProductFromCart(_, { cartId }) {
       try {
-        const user = checkAuth(context);
         const ProductInCart = await Cart.findById(cartId);
         if (ProductInCart) {
           await ProductInCart.delete();
@@ -91,6 +145,19 @@ module.exports = {
       } catch (err) {
         throw new Error(err);
       }
+    },
+    async addChecklistToCart(
+      _,
+      { checkedCart: { productIds, isChecked, productQty } }
+    ) {
+      const updatedCart = await Cart.updateMany(
+        { product: { $in: productIds } },
+        {
+          isChecked: isChecked,
+        },
+        { new: true }
+      );
+      return "Cart items updated";
     },
   },
 };

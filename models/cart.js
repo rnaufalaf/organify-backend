@@ -16,6 +16,10 @@ const CartSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "User",
     },
+    isChecked: {
+      type: Boolean,
+      required: true,
+    },
     createdAt: {
       type: String,
       required: true,

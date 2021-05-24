@@ -25,6 +25,14 @@ function generateToken(user) {
 
 module.exports = {
   Query: {
+    async getUsers() {
+      try {
+        const users = await User.find().sort({ createdAt: -1 });
+        return users;
+      } catch (err) {
+        throw new Error(err);
+      }
+    },
     async getUser(_, { userId }) {
       try {
         const user = await User.findById(userId);
@@ -121,7 +129,6 @@ module.exports = {
         balance: 0,
         buyer: {
           name: name,
-          birthDate: "",
           avatar: "",
           createdAt: new Date().toISOString(),
         },
@@ -144,9 +151,9 @@ module.exports = {
       };
     },
 
-    async updateUserProfile(
+    async updateBuyerProfile(
       _,
-      { userProfileInput: { name, email, phone, birthDate, avatar, address } },
+      { updateBuyerInput: { name, email, phone, avatar, address } },
       context
     ) {
       const userCache = checkAuth(context);
@@ -172,7 +179,6 @@ module.exports = {
           phone: phone,
           address: address,
           "buyer.name": name,
-          "buyer.birthDate": birthDate,
           "buyer.avatar": avatar,
         },
         { new: true }
@@ -187,11 +193,14 @@ module.exports = {
 
     async updateSellerProfile(
       _,
-      { sellerProfileInput: { username, avatar, description } },
+      { updateSellerInput: { username, avatar, description } },
       context
     ) {
       const userCache = checkAuth(context);
-      const { valid, errors } = validateActivateSellerInput(username);
+      const { valid, errors } = validateSellerProfileInput(
+        username,
+        description
+      );
       if (!valid) {
         throw new UserInputError("Errors", { errors });
       }

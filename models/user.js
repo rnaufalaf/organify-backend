@@ -18,7 +18,6 @@ const userSchema = new Schema({
       auto: true,
     },
     name: String,
-    birthDate: String,
     avatar: String,
     createdAt: String,
   },

@@ -1,16 +1,30 @@
-const { ApolloServer } = require("apollo-server");
+const { ApolloServer, PubSub } = require("apollo-server");
 const mongoose = require("mongoose");
 
+const checkAuthSubscription = require("./util/checkAuthSubscription");
 const typeDefs = require("./graphql/typeDefs");
 const resolvers = require("./graphql/resolvers/index");
 const { MONGODB } = require("./config");
+const {
+  RajaOngkirApi,
+} = require("./graphql/resolvers/datasource/RajaOngkirApi");
 
-const PORT = process.env.PORT || 1000
+const PORT = process.env.PORT || 1000;
+const pubsub = new PubSub();
 
 const server = new ApolloServer({
   typeDefs,
   resolvers,
-  context: ({ req }) => ({ req }),
+  dataSources: () => {
+    return {
+      rajaOngkirApi: new RajaOngkirApi(),
+    };
+  },
+  context: (context) => {
+    const user = checkAuthSubscription(context);
+    const req = context.req;
+    return { req, pubsub, user };
+  },
 });
 
 mongoose

@@ -7,6 +7,7 @@ const ProductSchema = new Schema({
   stock: Number,
   weight: Number,
   benefits: String,
+  method: String,
   category: String,
   rating: Number,
   numReview: Number,

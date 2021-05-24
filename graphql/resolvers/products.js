@@ -9,12 +9,13 @@ module.exports = {
         productInput: {
           name,
           description,
+          benefits,
+          method,
+          category,
           price,
           weight,
-          benefits,
-          category,
-          images,
           stock,
+          images,
         },
       },
       context
@@ -24,11 +25,12 @@ module.exports = {
       const { valid, errors } = validateProductInput(
         name,
         description,
-        price,
+        method,
+        category,
         benefits,
+        price,
         weight,
-        stock,
-        category
+        stock
       );
       if (!valid) {
         throw new UserInputError("Errors", { errors });
@@ -36,11 +38,12 @@ module.exports = {
       const newProduct = new Product({
         name: name,
         description: description,
-        price: price,
         benefits: benefits,
+        method: method,
+        category: category,
+        price: price,
         weight: weight,
         stock: stock,
-        category: category,
         user: user.id,
         rating: 0,
         numReview: 0,
@@ -60,12 +63,13 @@ module.exports = {
       productInput: {
         name,
         description,
+        benefits,
+        method,
+        category,
         price,
         weight,
-        benefits,
-        category,
-        images,
         stock,
+        images,
       },
     },
     context
@@ -74,11 +78,12 @@ module.exports = {
     const { valid, errors } = validateProductInput(
       name,
       description,
-      price,
       benefits,
+      method,
+      category,
+      price,
       weight,
-      stock,
-      category
+      stock
     );
     if (!valid) {
       throw new UserInputError("Errors", { errors });
@@ -89,11 +94,12 @@ module.exports = {
       {
         name: name,
         description: description,
-        price: price,
         benefits: benefits,
+        method: method,
+        category: category,
+        price: price,
         weight: weight,
         stock: stock,
-        category: category,
         user: user.id,
         rating: 0,
         numReview: 0,
@@ -113,7 +119,7 @@ module.exports = {
 
     try {
       const product = await Product.findById(productId);
-      if (user.sellerName === product.user) {
+      if (user.username === product.user) {
         await product.delete();
         return "Product deleted succesfully";
       } else {

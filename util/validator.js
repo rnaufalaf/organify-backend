@@ -11,7 +11,8 @@ module.exports.validateRegisterInput = (
   if (email.trim() === "") {
     errors.email = "Email must not be empty";
   } else {
-    const regEx = /^([0-9a-zA-Z]([-.\w]*[0-9a-zA-Z])*@([0-9a-zA-Z][-\w]*[0-9a-zA-Z]\.)+[a-zA-Z]{2,9})$/;
+    const regEx =
+      /^([0-9a-zA-Z]([-.\w]*[0-9a-zA-Z])*@([0-9a-zA-Z][-\w]*[0-9a-zA-Z]\.)+[a-zA-Z]{2,9})$/;
     if (!email.match(regEx)) {
       errors.email = "Email must be a valid email address";
     }
@@ -43,15 +44,16 @@ module.exports.validateLoginInput = (email, password) => {
   };
 };
 
-module.exports.validateUserProfileInput = (username, email, phone) => {
+module.exports.validateUserProfileInput = (name, email, phone) => {
   const errors = {};
-  if (username.trim() === "") {
-    errors.username = "Username must not be empty";
+  if (name.trim() === "") {
+    errors.name = "Username must not be empty";
   }
   if (email.trim() === "") {
     errors.email = "Email must not be empty";
   } else {
-    const regEx = /^([0-9a-zA-Z]([-.\w]*[0-9a-zA-Z])*@([0-9a-zA-Z][-\w]*[0-9a-zA-Z]\.)+[a-zA-Z]{2,9})$/;
+    const regEx =
+      /^([0-9a-zA-Z]([-.\w]*[0-9a-zA-Z])*@([0-9a-zA-Z][-\w]*[0-9a-zA-Z]\.)+[a-zA-Z]{2,9})$/;
     if (!email.match(regEx)) {
       errors.email = "Email must be a valid email address";
     }
@@ -66,13 +68,13 @@ module.exports.validateUserProfileInput = (username, email, phone) => {
   };
 };
 
-module.exports.validateSellerProfileInput = (sellerName, sellerDesc) => {
+module.exports.validateSellerProfileInput = (username, description) => {
   const errors = {};
-  if (sellerName.trim() === "") {
-    errors.sellerName = "Name must not be empty";
+  if (username.trim() === "") {
+    errors.username = "Name must not be empty";
   }
-  if (sellerDesc.trim() === "") {
-    errors.sellerDesc = "Description must not be empty";
+  if (description.trim() === "") {
+    errors.description = "Name must not be empty";
   }
 
   return {
@@ -84,11 +86,12 @@ module.exports.validateSellerProfileInput = (sellerName, sellerDesc) => {
 module.exports.validateProductInput = (
   name,
   description,
-  price,
+  method,
+  category,
   benefits,
+  price,
   weight,
-  stock,
-  category
+  stock
 ) => {
   const errors = {};
   if (name.trim() === "") {
@@ -97,17 +100,20 @@ module.exports.validateProductInput = (
   if (description.trim() === "") {
     errors.description = "Description must not be empty";
   }
-  if (price === 0) {
-    errors.price = "Product price must not be empty";
-  }
   if (benefits.trim() === "") {
     errors.benefits = "Product benefits must not be empty";
   }
-  if (weight === 0) {
-    errors.weight = "Product weight must not be empty";
+  if (method.trim() === "") {
+    errors.method = "Planting method must not be empty";
   }
   if (category.trim() === "") {
     errors.category = "Category must not be empty";
+  }
+  if (price === 0) {
+    errors.price = "Product price must not be empty";
+  }
+  if (weight === 0) {
+    errors.weight = "Product weight must not be empty";
   }
   if (stock === 0) {
     errors.stock = "Product stock must not be empty";
