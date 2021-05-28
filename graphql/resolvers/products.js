@@ -1,6 +1,7 @@
 const Product = require("../../models/product");
 const checkAuth = require("../../util/checkAuth");
 const { validateProductInput } = require("../../util/validator");
+const { AuthenticationError, UserInputError } = require("apollo-server");
 module.exports = {
   Mutation: {
     async addProduct(
@@ -54,13 +55,27 @@ module.exports = {
 
       return product;
     },
-  },
 
-  async updateProduct(
-    _,
-    {
-      productId,
-      productInput: {
+    async updateProduct(
+      _,
+      {
+        productId,
+        productInput: {
+          name,
+          description,
+          benefits,
+          method,
+          category,
+          price,
+          weight,
+          stock,
+          images,
+        },
+      },
+      context
+    ) {
+      const user = checkAuth(context);
+      const { valid, errors } = validateProductInput(
         name,
         description,
         benefits,
@@ -68,93 +83,80 @@ module.exports = {
         category,
         price,
         weight,
-        stock,
-        images,
-      },
+        stock
+      );
+      if (!valid) {
+        throw new UserInputError("Errors", { errors });
+      }
+
+      const updatedProduct = await Product.findOneAndUpdate(
+        { _id: productId },
+        {
+          name: name,
+          description: description,
+          benefits: benefits,
+          method: method,
+          category: category,
+          price: price,
+          weight: weight,
+          stock: stock,
+          user: user.id,
+          rating: 0,
+          numReview: 0,
+          images: images,
+        },
+        { new: true }
+      ).populate("user");
+
+      return {
+        ...updatedProduct._doc,
+        id: updatedProduct._id,
+      };
     },
-    context
-  ) {
-    const user = checkAuth(context);
-    const { valid, errors } = validateProductInput(
-      name,
-      description,
-      benefits,
-      method,
-      category,
-      price,
-      weight,
-      stock
-    );
-    if (!valid) {
-      throw new UserInputError("Errors", { errors });
-    }
 
-    const updatedProduct = await Product.findOneAndUpdate(
-      { _id: productId },
-      {
-        name: name,
-        description: description,
-        benefits: benefits,
-        method: method,
-        category: category,
-        price: price,
-        weight: weight,
-        stock: stock,
-        user: user.id,
-        rating: 0,
-        numReview: 0,
-        images: images,
-      },
-      { new: true }
-    ).populate("user");
+    async deleteProduct(_, { productId }, context) {
+      const user = checkAuth(context);
 
-    return {
-      ...updatedProduct._doc,
-      id: updatedProduct._id,
-    };
-  },
+      try {
+        const product = await Product.findById(productId);
+        if (user.seller.username === product.user) {
+          await product.delete();
+          return "Product deleted succesfully";
+        } else {
+          return new AuthenticationError("Action not allowed");
+        }
+      } catch (err) {
+        throw new Error(err);
+      }
+    },
+    async addToWishlist(_, { productId }, context) {
+      const { id } = checkAuth(context);
 
-  async deleteProduct(_, { productId }, context) {
-    const user = checkAuth(context);
-
-    try {
       const product = await Product.findById(productId);
-      if (user.username === product.user) {
-        await product.delete();
-        return "Product deleted succesfully";
-      } else {
-        return new AuthenticationError("Action not allowed");
-      }
-    } catch (err) {
-      throw new Error(err);
-    }
-  },
-  async addToWishlist(_, { productId }, context) {
-    const { id } = checkAuth(context);
 
-    const product = await Product.findById(productId);
-
-    if (product) {
-      if (
-        product.wishlistedBy.find(
-          (wishlist) => wishlist.userId.toString() === id
-        )
-      ) {
-        product.wishlistedBy = product.wishlistedBy.filter(
-          (wishlist) => wishlist.userId.toString() !== id
-        );
+      if (product) {
+        if (
+          product.wishlistedBy.find(
+            (wishlist) => wishlist.userId.toString() === id
+          )
+        ) {
+          product.wishlistedBy = product.wishlistedBy.filter(
+            (wishlist) => wishlist.userId.toString() !== id
+          );
+        } else {
+          product.wishlistedBy.push({
+            userId: id,
+            createdAt: new Date().toISOString(),
+          });
+        }
+        await product.save();
+        return product;
       } else {
-        product.wishlistedBy.push({
-          userId: id,
-          createdAt: new Date().toISOString(),
-        });
+        throw new UserInputError("Product not found");
       }
-      await product.save();
-      return product;
-    } else {
-      throw new UserInputError("Product not found");
-    }
+    },
   },
+
   Query: {
     async getProducts() {
       try {

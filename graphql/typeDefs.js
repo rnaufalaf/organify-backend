@@ -20,9 +20,9 @@ module.exports = gql`
   }
 
   type WishlistedBy {
-    id: ID!
-    userId: ID!
-    createdAt: String!
+    id: ID
+    userId: ID
+    createdAt: String
   }
 
   type Image {
@@ -114,7 +114,7 @@ module.exports = gql`
 
   type Message {
     id: ID!
-    user: ID!
+    user: User!
     product: ProductMessage
     content: String!
     images: [Image]
@@ -224,6 +224,7 @@ module.exports = gql`
   }
 
   type Mutation {
+    addToWishlist(productId: ID!): Product
     register(registerInput: RegisterInput): User!
     login(email: String!, password: String!): User!
     updateBuyerProfile(updateBuyerInput: UpdateBuyerInput): User!
@@ -231,7 +232,7 @@ module.exports = gql`
     addProduct(productInput: ProductInput): Product!
     updateProduct(productId: ID!, productInput: ProductInput): Product!
     deleteProduct(productId: ID!): Product!
-    addToWishlist(productId: ID!): Product!
+    addBookmark(productId: ID!): Product
     addMessage(messageInput: MessageInput!): Message
     addProductToCart(
       productId: ID!
