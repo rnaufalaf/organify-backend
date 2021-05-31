@@ -91,7 +91,8 @@ module.exports.validateProductInput = (
   benefits,
   price,
   weight,
-  stock
+  stock,
+  images
 ) => {
   const errors = {};
   if (name.trim() === "") {
@@ -117,6 +118,9 @@ module.exports.validateProductInput = (
   }
   if (stock === 0) {
     errors.stock = "Product stock must not be empty";
+  }
+  if (images.length === 0) {
+    errors.images = "There must be at least one image";
   }
   return {
     errors,

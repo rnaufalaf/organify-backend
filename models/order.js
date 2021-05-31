@@ -1,23 +1,38 @@
 const { model, Schema } = require("mongoose");
 
-const OrderSchema = new Schema({
+const orderSchema = new Schema({
   products: [
     {
-      type: Schema.Types.ObjectId,
-      ref: "Product",
+      id: String,
+      name: String,
+      price: Number,
+      weight: Number,
+      images: [{ downloadUrl: String }],
+      productQty: Number,
     },
   ],
-  user: {
-    type: Schema.Types.ObjectId,
-    ref: "User",
+  seller: {
+    username: String,
   },
-  orderStatus: {
-    status: String,
+  user: { type: Schema.Types.ObjectId, ref: "User" },
+  logs: [
+    {
+      stateType: String,
+      succededAt: String,
+      executedAt: String,
+    },
+  ],
+  shipping: {
+    awbNumber: String,
+    courierName: String,
+    buyerAddress: String,
+    shippingCost: String,
+  },
+  state: {
+    stateType: String,
     createdAt: String,
     deadline: String,
   },
-  orderNumber: String,
-  shippingCost: String,
 });
 
-module.exports = model("Order", OrderSchema);
+module.exports = model("Order", orderSchema);

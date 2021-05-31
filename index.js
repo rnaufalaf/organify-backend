@@ -8,6 +8,7 @@ const { MONGODB } = require("./config");
 const {
   RajaOngkirApi,
 } = require("./graphql/resolvers/datasource/RajaOngkirApi");
+const { MidTransApi } = require("./graphql/resolvers/datasource/MidTransApi");
 
 const PORT = process.env.PORT || 1000;
 const pubsub = new PubSub();
@@ -18,6 +19,7 @@ const server = new ApolloServer({
   dataSources: () => {
     return {
       rajaOngkirApi: new RajaOngkirApi(),
+      midTransApi: new MidTransApi(),
     };
   },
   context: (context) => {

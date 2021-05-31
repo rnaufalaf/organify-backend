@@ -19,6 +19,48 @@ module.exports = gql`
     createdAt: String!
   }
 
+  type Order {
+    id: ID!
+    products: [OrderProduct]!
+    seller: OrderSeller!
+    user: User!
+    state: OrderState
+    shipping: OrderShipping
+    logs: [OrderLog]!
+  }
+
+  type OrderLog {
+    stateType: String!
+    succededAt: String!
+    executedAt: String!
+  }
+
+  type OrderSeller {
+    username: String!
+  }
+
+  type OrderProduct {
+    id: String!
+    name: String!
+    price: Int!
+    weight: Int!
+    images: [Image]
+    productQty: Int!
+  }
+
+  type OrderState {
+    stateType: String!
+    createdAt: String!
+    deadline: String!
+  }
+
+  type OrderShipping {
+    awbNumber: String!
+    courierName: String!
+    buyerAddress: String!
+    shippingCost: Int!
+  }
+
   type WishlistedBy {
     id: ID
     userId: ID
@@ -147,6 +189,14 @@ module.exports = gql`
     images: [ImageInput]!
   }
 
+  input SearchProductInput {
+    keyword: String!
+    category: String
+    city: String
+    minPrice: Int
+    maxPrice: Int
+  }
+
   input ImageInput {
     downloadUrl: String
   }
@@ -199,6 +249,76 @@ module.exports = gql`
     price: Int!
     image: String!
   }
+
+  input AddOrderInput {
+    products: [OrderItemInput]!
+    state: OrderStateInput!
+    sellerUsername: String!
+    shipping: OrderShippingInput!
+  }
+
+  input UpdateOrderInput {
+    state: OrderStateInput!
+  }
+
+  input OrderItemInput {
+    id: String!
+    name: String!
+    price: Int!
+    weight: Int!
+    images: [ImageInput]
+    productQty: Int!
+    note: String!
+  }
+
+  input OrderStateInput {
+    stateType: String
+  }
+
+  input OrderShippingInput {
+    awbNumber: String
+    courierName: String!
+    buyerAddress: String!
+    shippingCost: Int!
+  }
+
+  input CreatePaymentInput {
+    grossAmount: Int!
+    customerDetails: CustomerDetailsInput!
+    productDetails: [ProductDetail]!
+  }
+
+  input ProductDetail {
+    id: String!
+    price: Int!
+    quantity: Int!
+    name: String!
+  }
+
+  input CustomerDetailsInput {
+    firstName: String!
+    email: String!
+    phone: String!
+    billingAddress: PaymentAddressInput!
+  }
+
+  input PaymentAddressInput {
+    firstName: String!
+    email: String!
+    phone: String!
+    address: String!
+    city: String!
+    postalCode: String!
+    countryCode: String!
+  }
+
+  input AddReviewInput {
+    score: Int!
+    body: String!
+    images: ImageInput
+    productId: ID!
+  }
+
   type chatExists {
     _id: ID
     lastMsg: String
@@ -209,22 +329,29 @@ module.exports = gql`
     getProduct(productId: ID!): Product
     getSellerProducts(userId: ID!): [Product]
     getWishlist: [Product]
+    searchProducts(searchProductInput: SearchProductInput): [Product]
     getUser(userId: ID!): User
     getUsers: [User]
     getSeller(sellerId: ID!): User
     getSellers: [User]
+    getProductReviews(productId: ID!): [Review]
+    getUserReviews(userId: ID!): [Review]
     getChats: [Chat]
     isChatExists(productUserId: ID!, currentUserId: ID!): [chatExists]
     getMessages(chatId: ID!): [Message]
     getProductsInCartBySeller: [Cart]
     getProductsCart: [Cart]
     getProductInCart(productId: ID!): Cart
+    getCheckoutData: [Cart]
+    getUserOrders: [Order]
+    getSellerOrders(username: String!): [Order]
+    getUserOrderById(oderId: ID!): [Order]
     getCities: [City] @cacheControl(maxAge: 1000)
     getCosts(costInput: CostInput): [Results]
+    createPayment(createPaymentInput: CreatePaymentInput): MidTransResult
   }
 
   type Mutation {
-    addToWishlist(productId: ID!): Product
     register(registerInput: RegisterInput): User!
     login(email: String!, password: String!): User!
     updateBuyerProfile(updateBuyerInput: UpdateBuyerInput): User!
@@ -232,8 +359,7 @@ module.exports = gql`
     addProduct(productInput: ProductInput): Product!
     updateProduct(productId: ID!, productInput: ProductInput): Product!
     deleteProduct(productId: ID!): Product!
-    addBookmark(productId: ID!): Product
-    addMessage(messageInput: MessageInput!): Message
+    addToWishlist(productId: ID!): Product
     addProductToCart(
       productId: ID!
       productQty: Int!
@@ -246,6 +372,16 @@ module.exports = gql`
     ): Cart!
     deleteProductFromCart(cartId: ID!): String!
     addChecklistToCart(checkedCart: CheckedCart!): String!
+    addMessage(messageInput: MessageInput!): Message
+    addOrder(addOrderInput: AddOrderInput!, productInCartIds: [ID]!): Order!
+    addAwbNumber(
+      orderId: ID!
+      awbNumber: String!
+      courierName: String!
+      buyerAddress: String!
+      shippingCost: Int!
+    ): Order!
+    updateOrder(oderId: ID!, updateOrderInput: UpdateOrderInput!): Order!
   }
   type Subscription {
     newMessage(chatId: ID!): Message
