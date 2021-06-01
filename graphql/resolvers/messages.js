@@ -71,7 +71,10 @@ module.exports = {
               newMessage.save();
             }
           });
-          return newMessage.save();
+          return newMessage;
+        } else {
+          newMessage.chatId = chatId;
+          await newMessage.save();
         }
         context.pubsub.publish("NEW_MESSAGE", { newMessage: newMessage });
         return newMessage;
