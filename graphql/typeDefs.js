@@ -67,6 +67,16 @@ module.exports = gql`
     createdAt: String
   }
 
+  type Review {
+    id: ID!
+    score: Int!
+    body: String!
+    user: User!
+    product: Product!
+    images: [Image]!
+    createdAt: String!
+  }
+
   type Image {
     id: ID!
     downloadUrl: String!
@@ -251,7 +261,7 @@ module.exports = gql`
   }
 
   input AddOrderInput {
-    products: [OrderItemInput]!
+    products: [OrderProductInput]!
     state: OrderStateInput!
     sellerUsername: String!
     shipping: OrderShippingInput!
@@ -261,7 +271,7 @@ module.exports = gql`
     state: OrderStateInput!
   }
 
-  input OrderItemInput {
+  input OrderProductInput {
     id: String!
     name: String!
     price: Int!
@@ -360,6 +370,7 @@ module.exports = gql`
     updateProduct(productId: ID!, productInput: ProductInput): Product!
     deleteProduct(productId: ID!): Product!
     addToWishlist(productId: ID!): Product
+    addReview(addReviewInput: AddReviewInput): Review!
     addProductToCart(
       productId: ID!
       productQty: Int!

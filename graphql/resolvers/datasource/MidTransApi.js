@@ -27,7 +27,7 @@ class MidTransApi extends RESTDataSource {
       credit_card: {
         secure: true,
       },
-      item_details: createPaymentInput.productDetails,
+      product_details: createPaymentInput.productDetails,
       customer_details: {
         first_name: createPaymentInput.customerDetails.firstName,
         last_name: "",
