@@ -71,6 +71,27 @@ module.exports = {
         throw new Error(err);
       }
     },
+    async getCheckoutData(_, __, context) {
+      try {
+        const user = checkAuth(context);
+        const cart = await Cart.find({ user: user.id, isChecked: true })
+          .populate("user")
+          .populate({
+            path: "product",
+            populate: {
+              path: "user",
+              options: { sort: { "seller.username": -1 } },
+            },
+          });
+        if (cart) {
+          return cart;
+        } else {
+          throw new Error("User cart items checkout not found");
+        }
+      } catch (err) {
+        throw new Error(err);
+      }
+    },
   },
   Mutation: {
     async addProductToCart(_, { productId, productQty, isChecked }, context) {

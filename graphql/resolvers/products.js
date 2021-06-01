@@ -83,6 +83,7 @@ module.exports = {
         category,
         price,
         weight,
+        images,
         stock
       );
       if (!valid) {
