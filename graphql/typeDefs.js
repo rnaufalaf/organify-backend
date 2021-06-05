@@ -155,6 +155,7 @@ module.exports = gql`
   type MidTransResult {
     token: String
     redirect_url: String
+    orderId: String
   }
 
   type Chat {
