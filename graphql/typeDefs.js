@@ -278,7 +278,6 @@ module.exports = gql`
     weight: Int!
     images: [ImageInput]
     productQty: Int!
-    note: String!
   }
 
   input OrderStateInput {
