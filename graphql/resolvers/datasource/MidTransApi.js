@@ -21,7 +21,7 @@ class MidTransApi extends RESTDataSource {
   async createPayment(createPaymentInput) {
     const data = await this.post(`transactions`, {
       transaction_details: {
-        order_id: createPaymentInput.orderId,
+        order_id: "order-org-" + getCurrentTimestamp(),
         gross_amount: createPaymentInput.grossAmount,
       },
       credit_card: {

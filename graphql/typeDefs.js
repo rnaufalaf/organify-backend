@@ -355,7 +355,7 @@ module.exports = gql`
     getCheckoutData: [Cart]
     getUserOrders: [Order]
     getSellerOrders(username: String!): [Order]
-    getUserOrderById(oderId: ID!): [Order]
+    getUserOrderById(orderId: ID!): [Order]
     getCities: [City] @cacheControl(maxAge: 1000)
     getCosts(costInput: CostInput): [Results]
     createPayment(createPaymentInput: CreatePaymentInput): MidTransResult
@@ -392,7 +392,7 @@ module.exports = gql`
       buyerAddress: String!
       shippingCost: Int!
     ): Order!
-    updateOrder(oderId: ID!, updateOrderInput: UpdateOrderInput!): Order!
+    updateOrder(orderId: ID!, updateOrderInput: UpdateOrderInput!): Order!
   }
   type Subscription {
     newMessage(chatId: ID!): Message
