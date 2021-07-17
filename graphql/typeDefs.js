@@ -325,7 +325,6 @@ module.exports = gql`
   input AddReviewInput {
     score: Int!
     body: String!
-    images: ImageInput
     productId: ID!
   }
 
@@ -368,7 +367,7 @@ module.exports = gql`
     updateSellerProfile(updateSellerInput: UpdateSellerInput): User!
     addProduct(productInput: ProductInput): Product!
     updateProduct(productId: ID!, productInput: ProductInput): Product!
-    deleteProduct(productId: ID!): Product!
+    deleteProduct(productId: ID!): String!
     addToWishlist(productId: ID!): Product
     addReview(addReviewInput: AddReviewInput): Review!
     addProductToCart(

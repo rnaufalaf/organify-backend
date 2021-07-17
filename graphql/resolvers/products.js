@@ -1,4 +1,5 @@
 const Product = require("../../models/product");
+const User = require("../../models/user");
 const checkAuth = require("../../util/checkAuth");
 const { validateProductInput } = require("../../util/validator");
 const { AuthenticationError, UserInputError } = require("apollo-server");
@@ -31,7 +32,8 @@ module.exports = {
         benefits,
         price,
         weight,
-        stock
+        stock,
+        images
       );
       if (!valid) {
         throw new UserInputError("Errors", { errors });
@@ -117,10 +119,13 @@ module.exports = {
 
     async deleteProduct(_, { productId }, context) {
       const user = checkAuth(context);
-
+      console.log(user, "the user");
       try {
         const product = await Product.findById(productId);
-        if (user.seller.username === product.user) {
+        const userData = await User.findById(user.id);
+        console.log(product.user, "product res");
+        console.log(userData.id, "userdata res");
+        if (userData.id !== product.user) {
           await product.delete();
           return "Product deleted succesfully";
         } else {
